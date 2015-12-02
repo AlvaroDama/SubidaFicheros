@@ -1,0 +1,47 @@
+﻿@model IEnumerable<SubidaFicheros.Models.Ficheros>
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Ficheros</h2>
+
+@Html.ActionLink("Nuevo interno", "Subida", new { almacenaje = 1 })
+@Html.ActionLink("Nuevo base64", "Subida", new { almacenaje = 2 })
+@Html.ActionLink("Nuevo binario", "Subida", new { almacenaje = 3 })
+
+@foreach (var item in Model)
+{
+    if (item.Tipo == "interno")
+    {
+        if (item.TipoFichero == 1)
+        {
+            <img src="/Ficheros/@item.Datos"/>
+        }
+        else
+        {
+            <a href="/Ficheros/@item.Datos">@item.Nombre</a>
+        }
+    }
+    else if (item.Tipo == "base64")
+    {
+        if (item.TipoFichero == 1)
+        {
+            <img src="data:image/jpeg; base64, @item.Datos" />
+        }
+        else
+        {
+            @Html.ActionLink(@item.Nombre, "DownloadFile", new {id = item.Id, tipo = 0}, new { target = "_blank"})
+        }
+    }
+    else if (item.Tipo == "binario")
+    {
+        if (item.TipoFichero == 1)
+        {
+            <img src="data:image/jpeg; base64, @Convert.ToBase64String(item.DatosB)" />
+        }
+        else
+        {
+            @Html.ActionLink(@item.Nombre, "DownloadFile", new { id = item.Id, tipo = 1 }, new { target = "_blank" })
+        }
+    }
+}
