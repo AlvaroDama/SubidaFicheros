@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Entity.Validation;
 using System.Linq;
 using System.Net.Mime;
@@ -39,7 +40,12 @@ namespace SubidaFicheros.Controllers
                 tipoAlmacen = "interno";
             if (almacenaje == 2)
                 tipoAlmacen = "base64";
-            
+            if (almacenaje == 3)
+                tipoAlmacen = "binario";
+            if (almacenaje == 4)
+                tipoAlmacen = "azure";
+
+
             ViewBag.almacenaje = tipoAlmacen;
             ViewBag.TipoFichero = new SelectList
                 (tipos, "Id", "Nombre"); // params(lista, valor que guarda, texto del dropbox)
@@ -125,7 +131,20 @@ namespace SubidaFicheros.Controllers
                     }
                 }
             }
-            
+            else if (model.Tipo == "azure")
+            {
+                var cuenta = ConfigurationManager.AppSettings["CuentaAS"];
+                var cliente = ConfigurationManager.AppSettings["ClaveAS"];
+                var contenedor = ConfigurationManager.AppSettings["ContenedorAS"];
+                
+                var az = new AzureStorageUtils(cuenta, cliente, contenedor);
+
+                var n = Guid.NewGuid();
+                var ext = fichero.FileName.Substring(fichero.FileName.LastIndexOf("."));
+
+                az.SubirFichero(fichero.InputStream, n + ext);
+            }
+
             return RedirectToAction("Index");
         }
     }

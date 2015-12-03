@@ -194,6 +194,7 @@
     </Compile>
     <Compile Include="Models\TipoFichero.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utiles\AzureStorageUtils.cs" />
     <Compile Include="Utiles\GestionarFicheros.cs" />
   </ItemGroup>
   <ItemGroup>
