@@ -52,17 +52,39 @@ namespace SubidaFicheros.Controllers
             return View(new Ficheros());
         }
 
+        public ActionResult GetBase64Azure(string nombre)
+        {
+            var cuenta = ConfigurationManager.AppSettings["CuentaAS"];
+            var clave = ConfigurationManager.AppSettings["ClaveAS"];
+            var contenedor = ConfigurationManager.AppSettings["ContenedorAS"];
+
+            var sto = new AzureStorageUtils(cuenta, clave, contenedor);
+
+            var data = sto.RecuperarArchivo(nombre, contenedor);
+
+            var fic = new FicheroBase64() {Contenido = Convert.ToBase64String(data)};
+            return View(fic);
+        }
+
         public FileResult DownloadFile(int id, int tipo = 0)
         {
-            byte[] fichero;
+            byte[] fichero = new byte[] {};
             var f = db.Ficheros.Find(id);
             if (tipo == 0)
             {
                 fichero = Convert.FromBase64String(f.Datos);
-            }
-            else
+            }else if (tipo == 1)
             {
                 fichero = f.DatosB;
+            }else if (tipo == 2)
+            {
+                var cuenta = ConfigurationManager.AppSettings["CuentaAS"];
+                var clave = ConfigurationManager.AppSettings["ClaveAS"];
+                var contenedor = ConfigurationManager.AppSettings["ContenedorAS"];
+
+                var sto = new AzureStorageUtils(cuenta, clave, contenedor);
+
+                fichero = sto.RecuperarArchivo(f.Datos, contenedor);
             }
 
             return File(fichero, MediaTypeNames.Application.Octet, f.Nombre);
@@ -80,14 +102,14 @@ namespace SubidaFicheros.Controllers
                 if (n != null)
                 {
                     model.Datos = n;
-                    model.DatosB = new byte[1];
+                    model.DatosB = new byte[] {1};
                     db.Ficheros.Add(model);
 
                     try
                     {
                         db.SaveChanges();
                     }
-                    catch (DbEntityValidationException e)
+                    catch (Exception e)
                     {
                         Console.WriteLine(e);
                     }
@@ -99,7 +121,7 @@ namespace SubidaFicheros.Controllers
                 if (data != null)
                 {
                     model.Datos = Convert.ToBase64String(data);
-                    model.DatosB = new byte[1];
+                    model.DatosB = new byte[] {1};
                     model.Nombre = fichero.FileName;
                     db.Ficheros.Add(model);
                     try
@@ -134,15 +156,21 @@ namespace SubidaFicheros.Controllers
             else if (model.Tipo == "azure")
             {
                 var cuenta = ConfigurationManager.AppSettings["CuentaAS"];
-                var cliente = ConfigurationManager.AppSettings["ClaveAS"];
+                var clave = ConfigurationManager.AppSettings["ClaveAS"];
                 var contenedor = ConfigurationManager.AppSettings["ContenedorAS"];
                 
-                var az = new AzureStorageUtils(cuenta, cliente, contenedor);
+                var az = new AzureStorageUtils(cuenta, clave, contenedor);
 
                 var n = Guid.NewGuid();
                 var ext = fichero.FileName.Substring(fichero.FileName.LastIndexOf("."));
 
                 az.SubirFichero(fichero.InputStream, n + ext);
+
+                model.Datos = n+ext;
+                model.Nombre = fichero.FileName;
+
+                db.Ficheros.Add(model);
+                db.SaveChanges();
             }
 
             return RedirectToAction("Index");

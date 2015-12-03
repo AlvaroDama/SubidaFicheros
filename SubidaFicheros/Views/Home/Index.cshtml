@@ -8,6 +8,7 @@
 @Html.ActionLink("Nuevo interno", "Subida", new { almacenaje = 1 })
 @Html.ActionLink("Nuevo base64", "Subida", new { almacenaje = 2 })
 @Html.ActionLink("Nuevo binario", "Subida", new { almacenaje = 3 })
+@Html.ActionLink("Nuevo Azure", "Subida", new { almacenaje = 4 })
 
 @foreach (var item in Model)
 {
@@ -42,6 +43,19 @@
         else
         {
             @Html.ActionLink(@item.Nombre, "DownloadFile", new { id = item.Id, tipo = 1 }, new { target = "_blank" })
+        }
+    }
+    else if (item.Tipo == "azure")
+    {
+        if (item.TipoFichero == 1)
+        {
+            @Html.Action("GetBase64Azure", new {Nombre = item.Datos})
+            <!--cogemos el campo Datos porque es donde guardamos 
+                el nombre del archivo en Azure. Nombre = nombre original del archivo, no el que referencia en Azure-->
+        }
+        else
+        {
+            @Html.ActionLink(@item.Nombre, "DownloadFile", new { id = @item.Id, tipo = 2 }, new { target = "_blank" })
         }
     }
 }
